@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+
 import socketserver
-import sds_interface
+from sds_interface import *
 
 serial_number="SDS100P2153163"
-
+DEBUG=False
 
 class Handler_TCPServer(socketserver.BaseRequestHandler):
     """
@@ -17,18 +19,24 @@ class Handler_TCPServer(socketserver.BaseRequestHandler):
         # self.request - TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
 
-        scope.query(self.data)
-
-        print("{} sent:".format(self.client_address[0]))
+        print("{} sent: ".format(self.client_address[0]), end="")
         print(self.data)
+
+        result = scope.write(self.data.decode('utf-8'))
+
+        if DEBUG:
+            print ("Result: ")
+            print(result.decode('utf-8'))
         # just send back ACK for data arrival confirmation
-        self.request.sendall("ACK from TCP Server".encode())
+        self.request.sendall(result + b'\x0a')
+        #self.request.sendall("ACK from TCP Server".encode())
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 9999
+    HOST, PORT = "0.0.0.0", 9999
 
-    scope = Sds1102cml(serial_number)
+    scope = sds_interface.Sds1102cml(serial_number, setdebug=False)
     # Init the TCP server object, bind it to the localhost on 9999 port
+    print ("Start Server on port: " + str(PORT))
     tcp_server = socketserver.TCPServer((HOST, PORT), Handler_TCPServer)
 
     # Activate the TCP server.

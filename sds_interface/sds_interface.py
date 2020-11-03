@@ -1,32 +1,29 @@
+#!/usr/bin/env python3
 
 '''
     Siglent SDS11102CML Interface
 
-'''
+    https://siglentna.com/wp-content/uploads/dlm_uploads/2017/10/ProgrammingGuide_forSDS-1-1.pdf
+    https://ktln2.org/2018/02/20/control-siglent-oscilloscope/
+    https://siglentna.com/application-note/programming-example-sds-oscilloscope-save-a-copy-of-a-screen-image-via-python-pyvisa/
 
-#
-# https://siglentna.com/wp-content/uploads/dlm_uploads/2017/10/ProgrammingGuide_forSDS-1-1.pdf
-# https://ktln2.org/2018/02/20/control-siglent-oscilloscope/
-# https://siglentna.com/application-note/programming-example-sds-oscilloscope-save-a-copy-of-a-screen-image-via-python-pyvisa/
-#
+'''
 
 import visa
 #import logger
 
-DEBUG = True
-SERIAL_NUMBER = "SDS100P2153163"
-
-#resources = visa.ResourceManager('@py')
-#device = resources.open_resource("USB0::0xF4EC::0xEE3A::" + serial_number + "::0::INSTR")
 
 # ['CR', 'LF', '_Resource__switch_events_off', '__class__', '__del__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_cleanup_timeout', '_encoding', '_logging_extra', '_read_termination', '_resource_manager', '_resource_name', '_session', '_values_format', '_write_termination', 'ask', 'ask_delay', 'ask_for_values', 'assert_trigger', 'before_close', 'chunk_size', 'clear', 'close', 'control_in', 'control_ren', 'disable_event', 'discard_events', 'enable_event', 'encoding', 'get_visa_attribute', 'ignore_warning', 'implementation_version', 'install_handler', 'interface_number', 'interface_type', 'io_protocol', 'is_4882_compliant', 'last_status', 'lock', 'lock_context', 'lock_excl', 'lock_state', 'manufacturer_id', 'manufacturer_name', 'maximum_interrupt_size', 'model_code', 'model_name', 'open', 'query', 'query_ascii_values', 'query_binary_values', 'query_delay', 'query_values', 'read', 'read_raw', 'read_stb', 'read_termination', 'read_termination_context', 'read_values', 'register', 'resource_class', 'resource_info', 'resource_manufacturer_name', 'resource_name', 'send_end', 'serial_number', 'session', 'set_visa_attribute', 'spec_version', 'stb', 'timeout', 'uninstall_handler', 'unlock', 'usb_control_out', 'usb_protocol', 'values_format', 'visa_attributes_classes', 'visalib', 'wait_on_event', 'write', 'write_ascii_values', 'write_binary_values', 'write_raw', 'write_termination', 'write_values']
 
-class Sds1102cml:
+class Sds1102cml(object):
 
     device = ""
     resources = ""
+    DEBUG = ""
 
-    def __init__(self, serial_number):
+    def __init__(self, serial_number, setdebug=False):
+
+        self.DEBUG = setdebug
 
         usb_ids = "0xF4EC::0xEE3A"
 
@@ -35,35 +32,44 @@ class Sds1102cml:
         self.resources = visa.ResourceManager('@py')
         self.device = self.resources.open_resource(resource_string)
 
-        if DEBUG:
+        if self.DEBUG:
             print (self.device.query("*IDN?"))
 
     def __del__(self):
         self.device.close()
 
-        if DEBUG:
+        if self.DEBUG:
             print("Closed")
 
     def write(self, command):
         ''' Run command read raw values, usefule for binary data '''
+
+        if self.DEBUG:
+            print ("DEBUG: " + command)
+            print (type(command))
+
         self.device.write(command)
         response = self.device.read_raw()
 
-        if DEBUG:
-            print(response)
+        if self.DEBUG:
+            print(type(response))
+            print("DEBUG: " + str(response))
 
         return response
 
     def query(self, command):
         ''' Run simple query '''
 
+        if self.DEBUG:
+            print ("DEBUG: " + command)
+
         response = self.device.query(command)
 
         if response == "":
             print ("ERROR: EMPTY RESULT")
 
-        if DEBUG:
-            print(response)
+        if self.DEBUG:
+            print("DEBUG: " + response)
 
         return response[:-2] # trim \n\00 at end
 
@@ -160,7 +166,10 @@ class Sds1102cml:
 
 
 if __name__ == '__main__':
-    scope = Sds1102cml(SERIAL_NUMBER)
+
+    SERIAL_NUMBER = "SDS100P2153163"
+
+    scope = Sds1102cml(SERIAL_NUMBER, DEBUG=True)
     print (scope.all_parameter_value('1'))
 #   print ()
     scope.close()

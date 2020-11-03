@@ -51,6 +51,9 @@ class Sds1102cml(object):
         self.device.write(command)
         response = self.device.read_raw()
 
+        if response == "":
+            print ("ERROR: EMPTY RESULT")
+
         if self.DEBUG:
             print(type(response))
             print("DEBUG: " + str(response))

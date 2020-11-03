@@ -99,7 +99,9 @@ class Sds1102cml(object):
     def single_parameter_value(self, channel, val):
         ''' Collect single measure value '''
 
-        param_vals = ['AMPL', 'BASE', 'CMEAN', 'CRMS', 'DUTY', 'FALL', 'FPRE', 'FREQ', 'MAX', 'MEAN', 'MIN', 'NDUTY', 'NWID', 'OVSN', 'OVSP', 'PER', 'PKPK', 'PWID', 'RISE', 'RMS', 'RPRE', 'TOP', 'WID']
+        param_vals = ['AMPL', 'BASE', 'CMEAN', 'CRMS', 'DUTY', 'FALL', 'FPRE', 
+            'FREQ', 'MAX', 'MEAN', 'MIN', 'NDUTY', 'NWID', 'OVSN', 'OVSP', 
+            'PER', 'PKPK', 'PWID', 'RISE', 'RMS', 'RPRE', 'TOP', 'WID']
 
         if val not in param_vals:
             # ERROR ERROR
@@ -158,14 +160,11 @@ class Sds1102cml(object):
         print('saved wave file')
 
     def dl_dumpscreen(self, filename):
-        print('DUMPING SCREEN')
-
+        ''' Gather Screen shot '''
         response = self.write('SCDP')
 
         with open(filename, 'w') as filehandle:
             filehandle.write(response)
-
-        print('END')
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@
 #
 
 import visa
-import logger
+#import logger
 
 DEBUG = True
 SERIAL_NUMBER = "SDS100P2153163"
@@ -23,6 +23,9 @@ SERIAL_NUMBER = "SDS100P2153163"
 
 class Sds1102cml:
 
+    device = ""
+    resources = ""
+
     def __init__(self, serial_number):
 
         usb_ids = "0xF4EC::0xEE3A"
@@ -30,13 +33,16 @@ class Sds1102cml:
         resource_string = "USB0::" + usb_ids + "::" + serial_number + "::0::INSTR"
 
         self.resources = visa.ResourceManager('@py')
-        self.device = resources.open_resource(resource_string)
+        self.device = self.resources.open_resource(resource_string)
 
         if DEBUG:
             print (self.device.query("*IDN?"))
 
     def __del__(self):
         self.device.close()
+
+        if DEBUG:
+            print("Closed")
 
     def write(self, command):
         ''' Run command read raw values, usefule for binary data '''
@@ -71,11 +77,12 @@ class Sds1102cml:
 
         result = self.query("C" + channel + ": PAVA? ALL")
         # C2:PAVA PKPK,10.08V,MAX,5.04V,MIN,-5.04V,AMPL,9.92V,TOP,4.96V,BASE,-4.96V,CMEAN,0.00mV,MEAN,0.00mV,RMS,3.52V,CRMS,3.52V,OVSN,0.81%,FPRE,47.5%,OVSP,0.81%,RPRE,0.00%,PER,99.80us,FREQ,10.02KHz,PWID,50.40us,NWID,49.60us,RISE,29.20us,FALL,29.20us,WID,1.75ms,DUTY,50.50%,NDUTY,49.70%
-        result_trim = result[8:] # Trim prefix
-
+        result_list = result[8:].split(",") # Trim prefix
+        
+        
         counter = 0
-        while counter <= len(result_trim):
-            param_struct[result_trim[counter]] = result_trim[counter+1]
+        while counter <= len(result_list)-2:
+            param_struct[result_list[counter]] = result_list[counter+1]
             counter += 2
 
         return param_struct
@@ -104,7 +111,8 @@ class Sds1102cml:
         sample_rate = self.query('SANU C%d?' % channel)
 
         sample_rate = int(sample_rate[len('SANU '):-2])
-        logger.info('detected sample rate of %d' % sample_rate)
+        print ('detected sample rate of %d' % sample_rate)
+        #logger.info('detected sample rate of %d' % sample_rate)
 
         #desc = device.write('C%d: WF? DESC' % channel)
         #logger.info(repr(device.read_raw()))
@@ -124,7 +132,7 @@ class Sds1102cml:
         # is a bit longer that the header + data
         data = response[index_start_data:index_start_data + data_size]
 
-        logger.info('data size: %d' % data_size)
+        print('data size: %d' % data_size)
 
         wave_filehandle = wave.open(outfilename, "w")
         wave_filehandle.setparams((
@@ -138,21 +146,21 @@ class Sds1102cml:
         wave_filehandle.writeframes(data)
         wave_filehandle.close()
 
-        logger.info('saved wave file')
+        print('saved wave file')
 
     def dl_dumpscreen(self, filename):
-        logger.info('DUMPING SCREEN')
+        print('DUMPING SCREEN')
 
         response = self.write('SCDP')
 
         with open(filename, 'w') as filehandle:
             filehandle.write(response)
 
-        logger.info('END')
+        print('END')
 
 
 if __name__ == '__main__':
     scope = Sds1102cml(SERIAL_NUMBER)
     print (scope.all_parameter_value('1'))
-#    print ()
+#   print ()
     scope.close()

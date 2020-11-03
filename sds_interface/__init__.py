@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from main import *
+from sds_interface import *
 
 __all__ = ["sds_interface"]
 

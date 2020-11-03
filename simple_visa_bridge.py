@@ -1,23 +1,7 @@
 import socketserver
-import visa
+import sds_interface
 
 serial_number="SDS100P2153163"
-
-class Sds1102cml:
-
-
-    def __init__(self, serial_number):
-        resource_string = "USB0::0xF4EC::0xEE3A::" + serial_number + "::0::INSTR"
-
-        self.resources = visa.ResourceManager('@py')
-        self.device = resources.open_resource(resource_string)
-
-    def sendcommand(self, command):
-        
-        self.device.write(command)
-        response = self.device.read_raw()
-
-        return response
 
 
 class Handler_TCPServer(socketserver.BaseRequestHandler):
@@ -33,7 +17,7 @@ class Handler_TCPServer(socketserver.BaseRequestHandler):
         # self.request - TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
 
-        scope.sendcommand(self.data)
+        scope.query(self.data)
 
         print("{} sent:".format(self.client_address[0]))
         print(self.data)

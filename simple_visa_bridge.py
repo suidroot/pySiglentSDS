@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import socketserver
-from sds_interface import *
+#import pysiglentsds
+from pysiglentsds import *
 
 serial_number="SDS100P2153163"
 DEBUG=False
@@ -15,8 +16,7 @@ class Handler_TCPServer(socketserver.BaseRequestHandler):
 
     """
 
-    def handle(self):
-        # self.request - TCP socket connected to the client
+    def handle(self):        # self.request - TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
 
         print("{} sent: ".format(self.client_address[0]), end="")
@@ -34,7 +34,7 @@ class Handler_TCPServer(socketserver.BaseRequestHandler):
 if __name__ == "__main__":
     HOST, PORT = "0.0.0.0", 9999
 
-    scope = sds_interface.Sds1102cml(serial_number, setdebug=False)
+    scope = pysiglentsds.Sds1102cml(serial_number, setdebug=False)
     # Init the TCP server object, bind it to the localhost on 9999 port
     print ("Start Server on port: " + str(PORT))
     tcp_server = socketserver.TCPServer((HOST, PORT), Handler_TCPServer)
